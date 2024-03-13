@@ -9,7 +9,7 @@ var (
 	db *sql.DB
 )
 
-func Init() error{
+func Init() error {
 	var err error
 
 	db, err = initializeDbConnection()
@@ -19,4 +19,8 @@ func Init() error{
 	}
 
 	return err
+}
+
+func GetDbInstance() *sql.DB {
+	return db
 }
