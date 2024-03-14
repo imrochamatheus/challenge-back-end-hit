@@ -13,5 +13,6 @@ func initializeRoutes(router *gin.Engine) {
 	v1 := router.Group(basePath)
 	{
 		v1.GET("/planet", handler.ListPlanetsHandler)
+		v1.POST("/planet", handler.CreatePlanetHandler)
 	}
 }
