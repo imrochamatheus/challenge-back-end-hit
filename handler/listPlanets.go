@@ -1,7 +1,7 @@
 package handler
 
 import (
-	"fmt"
+	"log"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -13,43 +13,39 @@ func ListPlanetsHandler(ctx *gin.Context) {
 	path := "./queries/select_planets.sql"
 
 	query, err := utils.ReadQueryFile(path)
-
 	if err != nil {
-		fmt.Printf("unable to read file with query to list planets: %s", err)
-		return
+		sendError(ctx, http.StatusInternalServerError, err.Error())
+		return 
 	}
 
 	stmt, err := db.Query(query)
-
 	if err != nil {
-		fmt.Printf("error list planets: %s", err)
+		sendError(ctx, http.StatusInternalServerError, err.Error())
 		return
 	}
 
 	defer stmt.Close()
 
-	planets := []models.PlanetResponse{}
+	planets := []models.Planet{}
 
 	for stmt.Next() {
-		var row models.PlanetResponse
+		var row models.Planet
 
 		if err := stmt.Scan(
 			&row.ID,
 			&row.Name,
 			&row.Ground,
 			&row.Climate,
+			&row.Appearances,
 			&row.CreatedAt,
 			&row.UpdatedAt,
 		); err != nil {
-			fmt.Printf("error scanning row: %s", err)
+			log.Printf("error scanning row: %s", err)
 			continue
 		}
 
 		planets = append(planets, row)
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{
-		"msg":  "Success!",
-		"data": planets,
-	})
+	sendSuccess(ctx, http.StatusOK, "list planets", planets)
 }
