@@ -2,15 +2,12 @@ package handler
 
 import (
 	"fmt"
-	"log"
 
 	"github.com/gin-gonic/gin"
 	"github.com/imrochamatheus/challenge-back-end-hit/models"
 )
 
 func sendError(ctx *gin.Context, code int, msg string) {
-	log.Printf(msg)
-
 	ctx.Header("Content-type", "application/json")
 	ctx.JSON(code, gin.H{
 		"message":   msg,

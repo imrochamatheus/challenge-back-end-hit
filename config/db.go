@@ -13,6 +13,7 @@ import (
 
 func initializeDbConnection() (*sql.DB, error) {
 	dbPath := "./db/main.db"
+	
 	err := os.MkdirAll("./db", os.ModePerm)
 
 	if err != nil {
