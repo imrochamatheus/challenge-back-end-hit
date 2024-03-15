@@ -1,0 +1,1 @@
+SELECT * FROM planets WHERE id = ?
