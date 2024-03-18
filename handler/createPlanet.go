@@ -12,18 +12,21 @@ func CreatePlanetHandler(ctx *gin.Context) {
 	var request CreatePlanetRequest
 
 	err := ctx.BindJSON(&request)
+
 	if err != nil {
 		sendError(ctx, http.StatusBadRequest, err.Error())
 		return
 	}
 
 	query, err := utils.ReadQueryFile("./queries/create_planet.sql")
+
 	if err != nil {
 		sendError(ctx, http.StatusBadRequest, err.Error())
 		return
 	}
 
 	stmt, err := db.Prepare(query)
+
 	if err != nil {
 		sendError(ctx, http.StatusBadRequest, err.Error())
 		return
@@ -42,6 +45,7 @@ func CreatePlanetHandler(ctx *gin.Context) {
 	}
 
 	id, err := result.LastInsertId()
+	
 	if err != nil {
 		sendError(ctx, http.StatusInternalServerError, err.Error())
 		return

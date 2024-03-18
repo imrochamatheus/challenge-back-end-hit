@@ -13,12 +13,14 @@ func ListPlanetsHandler(ctx *gin.Context) {
 	path := "./queries/select_planets.sql"
 
 	query, err := utils.ReadQueryFile(path)
+
 	if err != nil {
 		sendError(ctx, http.StatusInternalServerError, err.Error())
 		return 
 	}
 
 	stmt, err := db.Query(query)
+	
 	if err != nil {
 		sendError(ctx, http.StatusInternalServerError, err.Error())
 		return
