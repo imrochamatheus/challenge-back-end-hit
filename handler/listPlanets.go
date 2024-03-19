@@ -10,16 +10,21 @@ import (
 )
 
 func ListPlanetsHandler(ctx *gin.Context) {
-	path := "./queries/select_planets.sql"
+	queryPath := "./queries/select_planets.sql"
+	queryName, hasQueryName := ctx.GetQuery("name")
 
-	query, err := utils.ReadQueryFile(path)
+	query, err := utils.ReadQueryFile(queryPath)
 
 	if err != nil {
 		sendError(ctx, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	stmt, err := db.Query(query)
+	if hasQueryName {
+		query += " AND name = ?"
+	}
+
+	stmt, err := db.Query(query,queryName )
 
 	if err != nil {
 		sendError(ctx, http.StatusInternalServerError, err.Error())

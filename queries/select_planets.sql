@@ -1,1 +1,1 @@
-SELECT * FROM planets
+SELECT * FROM planets WHERE 1 = 1
