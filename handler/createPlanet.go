@@ -57,11 +57,11 @@ func getPlanetAppearances(name *string) (*int64, error) {
 		return nil, errors.New("Error unmarshalling response: " + err.Error())
 	}
 
-	appearances := int64(len(planetResponse.Results[0].Films))
-
-	if len(planetResponse.Results) == 0|| len(planetResponse.Results[0].Films) == 0 {
+	if len(planetResponse.Results) == 0 || len(planetResponse.Results[0].Films) == 0 {
 		return nil, errors.New("No films found for the planet")
 	}
+
+	appearances := int64(len(planetResponse.Results[0].Films))
 
 	return &appearances, nil
 }
