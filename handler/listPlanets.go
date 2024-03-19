@@ -16,11 +16,11 @@ func ListPlanetsHandler(ctx *gin.Context) {
 
 	if err != nil {
 		sendError(ctx, http.StatusInternalServerError, err.Error())
-		return 
+		return
 	}
 
 	stmt, err := db.Query(query)
-	
+
 	if err != nil {
 		sendError(ctx, http.StatusInternalServerError, err.Error())
 		return
