@@ -10,6 +10,6 @@ var (
 	db *sql.DB
 )
 
-func InitializeHandlers(){
+func InitializeHandlers() {
 	db = config.GetDbInstance()
 }
