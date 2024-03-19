@@ -23,17 +23,20 @@ func sendSuccess(ctx *gin.Context, code int, op string, data interface{}) {
 	})
 }
 
+type CreatePlanetResponse struct {
+	ID          int64  `json:"id"`
+	Name        string `json:"name"`
+	Ground      string `json:"ground"`
+	Climate     string `json:"climate"`
+	Appearances int64  `json:"appearances"`
+}
+
 type ErrorResponse struct {
 	Message   string `json:"message"`
 	ErrorCode string `json:"errorCode"`
 }
 
 type ListPlanetsResponse struct {
-	Message string        	`json:"message"`
+	Message string          `json:"message"`
 	Data    []models.Planet `json:"data"`
-}
-
-type CreatePlanetResponse struct {
-	Message string              `json:"message"`
-	Data    models.CreatePlanet `json:"data"`
 }
