@@ -21,11 +21,7 @@ type swapiPlanetInfo struct {
 	Films []string `json:"films"`
 }
 
-func getPlanetAppearances(name *string) (*int64, error) {
-	client := &http.Client{
-		Timeout: time.Second * 10,
-	}
-
+func getSWAPIResponse(name string, client *http.Client) (*http.Response, error) {
 	req, err := http.NewRequest(http.MethodGet, "https://swapi.dev/api/planets", nil)
 
 	if err != nil {
@@ -33,19 +29,20 @@ func getPlanetAppearances(name *string) (*int64, error) {
 	}
 
 	q := req.URL.Query()
-	q.Add("search", strings.ToLower(*name))
+	q.Add("search", strings.ToLower(name))
 
 	req.URL.RawQuery = q.Encode()
-
 	res, err := client.Do(req)
 
 	if err != nil {
 		return nil, errors.New("Error getting planet appearances")
 	}
 
-	defer res.Body.Close()
+	return res, nil
+}
 
-	var planetResponse swapiPlanetResponse
+func parseSWAPIResponse(res *http.Response) (*swapiPlanetResponse, error) {
+	var swapiPlanetResponse swapiPlanetResponse
 
 	bodyString, err := io.ReadAll(res.Body)
 
@@ -53,15 +50,33 @@ func getPlanetAppearances(name *string) (*int64, error) {
 		return nil, errors.New("Error reading response: " + err.Error())
 	}
 
-	if err := json.Unmarshal(bodyString, &planetResponse); err != nil {
+	defer res.Body.Close()
+
+	if err := json.Unmarshal(bodyString, &swapiPlanetResponse); err != nil {
 		return nil, errors.New("Error unmarshalling response: " + err.Error())
 	}
 
-	if len(planetResponse.Results) == 0 || len(planetResponse.Results[0].Films) == 0 {
+	return &swapiPlanetResponse, nil
+}
+
+func getPlanetAppearances(name *string) (*int64, error) {
+	client := &http.Client{
+		Timeout: time.Second * 10,
+	}
+
+	res, err := getSWAPIResponse(*name, client)
+
+	if err != nil {
+		return nil, err
+	}
+
+	swapiPlanetData, err := parseSWAPIResponse(res)
+
+	if len(swapiPlanetData.Results) == 0 || len(swapiPlanetData.Results[0].Films) == 0 {
 		return nil, errors.New("No films found for the planet")
 	}
 
-	appearances := int64(len(planetResponse.Results[0].Films))
+	appearances := int64(len(swapiPlanetData.Results[0].Films))
 
 	return &appearances, nil
 }
@@ -76,6 +91,13 @@ func CreatePlanetHandler(ctx *gin.Context) {
 		return
 	}
 
+	appearances, err := getPlanetAppearances(&request.Name)
+
+	if err != nil {
+		sendError(ctx, http.StatusBadRequest, err.Error())
+		return
+	}
+
 	stmt, err := utils.PrepareQuery(db, "./queries/create_planet.sql")
 
 	if err != nil {
@@ -84,13 +106,6 @@ func CreatePlanetHandler(ctx *gin.Context) {
 	}
 
 	defer stmt.Close()
-
-	appearances, err := getPlanetAppearances(&request.Name)
-
-	if err != nil {
-		sendError(ctx, http.StatusInternalServerError, err.Error())
-		return
-	}
 
 	result, err := stmt.Exec(&request.Name,
 		&request.Ground,
