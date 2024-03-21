@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 
@@ -9,10 +10,22 @@ import (
 	"github.com/imrochamatheus/challenge-back-end-hit/utils"
 )
 
+func buildParameters(ctx *gin.Context, query string, supportedParameters []string ) (string, []interface{}) {
+	parameters := make([]interface{}, len(supportedParameters))
+
+	for i, paramName := range supportedParameters {
+		if param := ctx.Query(paramName); param != "" {
+			query += fmt.Sprintf(" AND " + paramName + " = ?")
+			parameters[i] = param
+		}
+	}
+
+	return query, parameters
+}
+
+
 func ListPlanetsHandler(ctx *gin.Context) {
 	queryPath := "./queries/select_planets.sql"
-	queryName, hasQueryName := ctx.GetQuery("name")
-
 	query, err := utils.ReadQueryFile(queryPath)
 
 	if err != nil {
@@ -20,11 +33,8 @@ func ListPlanetsHandler(ctx *gin.Context) {
 		return
 	}
 
-	if hasQueryName {
-		query += " AND name = ?"
-	}
-
-	stmt, err := db.Query(query, queryName)
+	query, parameters := buildParameters(ctx, query, []string{"id", "name"})
+	stmt, err := db.Query(query, parameters...)
 
 	if err != nil {
 		sendError(ctx, http.StatusInternalServerError, err.Error())
@@ -52,6 +62,11 @@ func ListPlanetsHandler(ctx *gin.Context) {
 		}
 
 		planets = append(planets, row)
+	}
+
+	if len(planets) == 0 {
+		sendError(ctx, http.StatusNotFound, "no planets found")
+		return
 	}
 
 	sendSuccess(ctx, http.StatusOK, "list planets", planets)
