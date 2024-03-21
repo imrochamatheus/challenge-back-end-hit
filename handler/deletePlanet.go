@@ -33,8 +33,6 @@ func getPlanetById(id string) error {
 		return fmt.Errorf("planet with id %s not found", id)
 	}
 
-	fmt.Println(planet)
-
 	return nil
 }
 

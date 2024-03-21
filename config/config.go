@@ -2,7 +2,7 @@ package config
 
 import (
 	"database/sql"
-	"fmt"
+	"log"
 )
 
 var (
@@ -15,7 +15,7 @@ func Init() error {
 	db, err = initializeDbConnection()
 
 	if err != nil {
-		fmt.Println(err.Error())
+		log.Printf("Error initializing database connection: %v", err)
 	}
 
 	return err
