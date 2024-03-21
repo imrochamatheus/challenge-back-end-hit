@@ -3,6 +3,7 @@ package handler
 import (
 	"database/sql"
 	"errors"
+	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -14,16 +15,25 @@ func getPlanetById(id string) error {
 	stmt, err := utils.PrepareQuery(db, "./queries/select_planet_by_id.sql")
 
 	if err != nil {
-		return errors.New("planet not found")
+		return err
 	}
 
 	var planet models.Planet
 
 	row := stmt.QueryRow(id)
 
-	if err := row.Scan(planet); err != nil && err == sql.ErrNoRows {
-		return errors.New("planet not found")
+	if err := row.Scan(
+		&planet.ID,
+		&planet.Name,
+		&planet.Climate,
+		&planet.Ground,
+		&planet.Appearances,
+		&planet.CreatedAt,
+		&planet.UpdatedAt); err != nil && err == sql.ErrNoRows {
+		return fmt.Errorf("planet with id %s not found", id)
 	}
+
+	fmt.Println(planet)
 
 	return nil
 }
