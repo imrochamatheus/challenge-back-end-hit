@@ -85,7 +85,7 @@ func getPlanetAppearances(name *string) (*int64, error) {
 
 func checkIfPlanetExists(name string) error {
 	query, err := utils.ReadQueryFile("./queries/select_planets.sql")
-	
+
 	if err != nil {
 		return err
 	}

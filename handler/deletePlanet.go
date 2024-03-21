@@ -10,7 +10,6 @@ import (
 	"github.com/imrochamatheus/challenge-back-end-hit/utils"
 )
 
-
 func getPlanetById(id string) error {
 	stmt, err := utils.PrepareQuery(db, "./queries/select_planet_by_id.sql")
 
@@ -31,15 +30,15 @@ func getPlanetById(id string) error {
 
 func deletePlanet(id string) error {
 	stmt, err := utils.PrepareQuery(db, "./queries/delete_planet.sql")
-	
+
 	if err != nil {
 		return errors.New("error when prepare query")
 	}
 
 	defer stmt.Close()
-	
+
 	_, err = stmt.Exec(id)
-	
+
 	if err != nil {
 		return errors.New("error when delete planet")
 	}

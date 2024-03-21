@@ -24,7 +24,7 @@ func ListPlanetsHandler(ctx *gin.Context) {
 		query += " AND name = ?"
 	}
 
-	stmt, err := db.Query(query,queryName )
+	stmt, err := db.Query(query, queryName)
 
 	if err != nil {
 		sendError(ctx, http.StatusInternalServerError, err.Error())
