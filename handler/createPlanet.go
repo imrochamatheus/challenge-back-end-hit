@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"database/sql"
 	"encoding/json"
 	"errors"
 	"io"
@@ -9,6 +10,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/imrochamatheus/challenge-back-end-hit/models"
 	"github.com/imrochamatheus/challenge-back-end-hit/utils"
 )
 
@@ -81,6 +83,61 @@ func getPlanetAppearances(name *string) (*int64, error) {
 	return &appearances, nil
 }
 
+func checkIfPlanetExists(name string) error {
+	query, err := utils.ReadQueryFile("./queries/select_planets.sql")
+	
+	if err != nil {
+		return err
+	}
+
+	query += " AND name COLLATE SQL_Latin1_General_CP1_CI_AS LIKE CONCAT('%', ?, '%')"
+	stmt, err := db.Prepare(query)
+
+	if err != nil {
+		return err
+	}
+
+	defer stmt.Close()
+
+	var planet models.Planet
+
+	row := stmt.QueryRow(strings.ToLower(name))
+
+	if err = row.Scan(
+		&planet.ID,
+		&planet.Name,
+		&planet.Ground,
+		&planet.Climate,
+		&planet.Appearances,
+		&planet.CreatedAt,
+		&planet.UpdatedAt); err == nil {
+		return errors.New("planet already exists")
+	}
+
+	return nil
+}
+
+func createPlanet(request CreatePlanetRequest, appearances int64) (*sql.Result, error) {
+	stmt, err := utils.PrepareQuery(db, "./queries/create_planet.sql")
+
+	if err != nil {
+		return nil, err
+	}
+
+	defer stmt.Close()
+
+	result, err := stmt.Exec(&request.Name,
+		&request.Ground,
+		&request.Climate,
+		&appearances)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &result, nil
+}
+
 func CreatePlanetHandler(ctx *gin.Context) {
 	var request CreatePlanetRequest
 
@@ -98,26 +155,21 @@ func CreatePlanetHandler(ctx *gin.Context) {
 		return
 	}
 
-	stmt, err := utils.PrepareQuery(db, "./queries/create_planet.sql")
+	err = checkIfPlanetExists(request.Name)
+
+	if err != nil {
+		sendError(ctx, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	result, err := createPlanet(request, *appearances)
 
 	if err != nil {
 		sendError(ctx, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	defer stmt.Close()
-
-	result, err := stmt.Exec(&request.Name,
-		&request.Ground,
-		&request.Climate,
-		&appearances)
-
-	if err != nil {
-		sendError(ctx, http.StatusInternalServerError, err.Error())
-		return
-	}
-
-	id, err := result.LastInsertId()
+	id, err := (*result).LastInsertId()
 
 	if err != nil {
 		sendError(ctx, http.StatusInternalServerError, err.Error())
