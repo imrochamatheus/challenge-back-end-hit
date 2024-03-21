@@ -78,7 +78,8 @@ func getPlanetAppearances(name *string) (*int64, error) {
 		return nil, errors.New("No films found for the planet")
 	}
 
-	appearances := int64(len(swapiPlanetData.Results[0].Films))
+	films := swapiPlanetData.Results[0].Films
+	appearances := int64(len(films))
 
 	return &appearances, nil
 }
